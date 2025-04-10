@@ -4,19 +4,18 @@ from utils.calc import *
 DB_PATH = "data/risk_model.db"
 
 def main():
-    df_merge = load_data(DB_PATH)
+    df_conpri, df_spread = load_data(DB_PATH)
 
     # Calculate the yearly firm ER and ROFR to buyer
     for i in range(1, 11):
-        df_merge[f'firmERYr{i}'] = df_merge[f'offYr{i}'] * (1 - df_merge['totalShortfall'])
-        df_merge[f'ROFRtoBuyerYr{i}'] = df_merge[f'offYr{i}'] - df_merge[f'firmERYr{i}']
+        df_conpri[f'firmERYr{i}'] = df_conpri[f'offYr{i}'] * (1 - df_conpri['totalShortfall'])
+        df_conpri[f'ROFRtoBuyerYr{i}'] = df_conpri[f'offYr{i}'] - df_conpri[f'firmERYr{i}']
 
     # Calculate Discount on Corporate Contracts
-    df_merge['DiscCorpContract'] = df_merge['risklessRate'] + df_merge['spreadAAA'] + df_merge['adjFactor']
+    df_conpri['DiscCorpContract'] = df_conpri['risklessRate'] + df_conpri['spreadAAA'] + df_conpri['adjFactor']
 
-    # Something wrong with query
-    print(df_merge[['risklessRate', 'spreadAAA', 'adjFactor', 'DiscCorpContract']])
-    
+    print(df_conpri.columns)
+    print(df_spread)
 
 if __name__ == "__main__":
     main()
