@@ -1,4 +1,5 @@
 from utils.io import *
+from utils.calc import *
 
 DB_PATH = "data/risk_model.db"
 
