@@ -18,6 +18,10 @@ def main():
     df_conpri['TopDiscRate'] = df_conpri.apply(lambda x: calc_top_bottom_discount_rate(df_spread, x['spreadChoice'], x['ovRating'], x['cLength'], x['DiscCorpContract'], True), axis=1)
     df_conpri['BottomDiscRate'] = df_conpri.apply(lambda x: calc_top_bottom_discount_rate(df_spread, x['spreadChoice'], x['ovRating'], x['cLength'], x['DiscCorpContract'], False), axis=1)
 
+    # Calculate top and bottom RA prices
+    df_conpri['TopRAPrice'] = df_conpri.apply(lambda x: calc_ra_price(x['TopDiscRate'], x['techFundPrice'], x['cLength']), axis=1)
+    df_conpri['BottomRAPrice'] = df_conpri.apply(lambda x: calc_ra_price(x['BottomDiscRate'], x['techFundPrice'], x['cLength']), axis=1)
+
     print(df_conpri)    
 
     

@@ -1,6 +1,6 @@
+import numpy_financial as npf
 
-def calc_top_bottom_discount_rate(df_spread, spreadChoice, ovRating, cLength, discCorpContract, is_Top):
-    
+def calc_top_bottom_discount_rate(df_spread, spreadChoice, ovRating, cLength, discCorpContract, is_Top):   
     # Filter df_spread by spreadChoice and ovRating
     df_spread_filtered = df_spread[(df_spread['sType'] == spreadChoice) & (df_spread['rating'] == ovRating)]
     
@@ -64,4 +64,7 @@ def calc_top_bottom_discount_rate(df_spread, spreadChoice, ovRating, cLength, di
             spread = ((spread_plus + spread_minus) / (cLength + 1 - (cLength - 1))) + spread_minus
             return discCorpContract + (spread / 100)            
 
+def calc_ra_price(discount_rate, techFuncPrice, cLength):
+    ratio = npf.pv(discount_rate / 100, cLength, 0 , 100) * -1
+    return round((ratio * techFuncPrice) / 100, 2)
     
