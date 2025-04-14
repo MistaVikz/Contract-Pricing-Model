@@ -14,8 +14,12 @@ def main():
     # Calculate Discount on Corporate Contracts
     df_conpri['DiscCorpContract'] = df_conpri['risklessRate'] + df_conpri['spreadAAA'] + df_conpri['adjFactor']
 
-    print(df_conpri.columns)
-    print(df_spread)
+    # Calculate top and bottom discount rates
+    df_conpri['TopDiscRate'] = df_conpri.apply(lambda x: calc_top_bottom_discount_rate(df_spread, x['spreadChoice'], x['ovRating'], x['cLength'], x['DiscCorpContract'], True), axis=1)
+    df_conpri['BottomDiscRate'] = df_conpri.apply(lambda x: calc_top_bottom_discount_rate(df_spread, x['spreadChoice'], x['ovRating'], x['cLength'], x['DiscCorpContract'], False), axis=1)
 
+    print(df_conpri)    
+
+    
 if __name__ == "__main__":
     main()
