@@ -3,6 +3,9 @@ from utils.calc import *
 
 DB_PATH = "data/risk_model.db"
 
+FIRST_SPLIT = 30
+SECOND_SPLIT = 50
+
 def main():
     df_conpri, df_spread = load_data(DB_PATH)
 
@@ -22,23 +25,14 @@ def main():
     df_conpri['TopRAPrice'] = df_conpri.apply(lambda x: calc_ra_price(x['TopDiscRate'], x['techFundPrice'], x['cLength']), axis=1)
     df_conpri['BottomRAPrice'] = df_conpri.apply(lambda x: calc_ra_price(x['BottomDiscRate'], x['techFundPrice'], x['cLength']), axis=1)
 
-    # Total Prepay Values
-    df_conpri['TotalValueOfContract'] = 0
-    for i in range(1,11):
-        df_conpri['TotalValueOfContract'] += df_conpri[f'firmERYr{i}'] * df_conpri[f'PODPriceYr{i}']    # Drop
-    df_conpri['PrepayValueFirstSplit'] = df_conpri['TotalValueOfContract'] * (df_conpri['firstSplit'] / 100)    # Drop
-    df_conpri['PrepayValueSecondSplit'] = df_conpri['TotalValueOfContract'] * (df_conpri['secondSplit'] / 100)  # Drop
-
-    # Yearly Costs and Volumes
-    df_conpri['CumulativePrepayValueFirstSplit'] = 0    # Drop
-    df_conpri['CumulativePrepayValueSecondSplit'] = 0   # Drop
-
-    
-    # Remember to drop mid calculation columns
+    # Total Prepay/POD/Average Costs
+    df_conpri = calculate_prepay_pod_avg_cost(df_conpri, FIRST_SPLIT)
+    df_conpri = calculate_prepay_pod_avg_cost(df_conpri, SECOND_SPLIT)
 
     print(df_conpri)
     print(df_conpri.columns)    
 
+    # Remember to DROP Temporary Columns and SPLIT Columns (They are now hardcoded)
     
 if __name__ == "__main__":
     main()
