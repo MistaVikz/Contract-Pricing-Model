@@ -32,8 +32,11 @@ def main():
     print(df_conpri)
     print(df_conpri.columns)    
 
-    # Remember to FIX warnings
-    # Remember to DROP Temporary Columns and SPLIT Columns (They are now hardcoded)
+    # Test
+    df_conpri.to_csv("test_check.csv", index=False)
+
+    # Remember to FIX warnings with lambda functions
+    # Remember to DROP Unnecessary Columns and SPLIT Columns (They are now hardcoded)
     
 if __name__ == "__main__":
     main()
