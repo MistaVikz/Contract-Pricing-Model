@@ -67,4 +67,4 @@ def calc_top_bottom_discount_rate(df_spread, spreadChoice, ovRating, cLength, di
 def calc_ra_price(discount_rate, techFuncPrice, cLength):
     ratio = npf.pv(discount_rate / 100, cLength, 0 , 100) * -1
     return round((ratio * techFuncPrice) / 100, 2)
-    
+
