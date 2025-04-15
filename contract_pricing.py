@@ -32,6 +32,7 @@ def main():
     print(df_conpri)
     print(df_conpri.columns)    
 
+    # Remember to FIX warnings
     # Remember to DROP Temporary Columns and SPLIT Columns (They are now hardcoded)
     
 if __name__ == "__main__":

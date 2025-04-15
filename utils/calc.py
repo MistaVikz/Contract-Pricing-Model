@@ -116,6 +116,6 @@ def calculate_prepay_pod_avg_cost(df_conpri, split):
         df_conpri[prepay_payment_col] = df_conpri['TempPayment']
 
     # Drop temporary columns
-    df_conpri.drop(columns=['TempPayment'], inplace=True)
+    df_conpri.drop(columns=['TempPayment','TotalValueOfContract', 'CumulativePrepayAmount{split}'], inplace=True)
 
     return df_conpri
