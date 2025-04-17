@@ -69,18 +69,16 @@ def calc_ra_price(discount_rate, techFuncPrice, cLength):
     return round((ratio * techFuncPrice) / 100, 2)
 
 def calculate_prepay_pod_avg_cost(df_conpri, split):
-    # Calculate total value of the contract
     df_conpri['TotalValueOfContract'] = sum(
         df_conpri[f'firmERYr{i}'] * df_conpri[f'PODPriceYr{i}'] for i in range(1, 11)
     )
     
-    # Calculate total prepay values for the split
-    df_conpri[f'TotalPrepayValue{split}'] = df_conpri['TotalValueOfContract'] * split / 100
+    # Calculate total prepay values for first and second splits
+    df_conpri[f'TotalPrepayValue{split}'] = df_conpri['TotalValueOfContract'] * (df_conpri['firstSplit'] / 100)
     
-    # Initialize cumulative prepay amounts
+    # Initialize cumulative prepay amount
     df_conpri[f'CumulativePrepayAmount{split}'] = 0
 
-    # Iterate over each year to calculate prepay and POD values
     for i in range(10):
         year = i + 1
         prepay_col = f'PrepayVol{split}Yr{year}'
@@ -89,34 +87,47 @@ def calculate_prepay_pod_avg_cost(df_conpri, split):
         avg_cost_col = f'AvgCostTon{split}Yr{year}'
         prepay_payment_col = f'PrepayPayment{split}Yr{year}'
 
-        # TODO: NEED TO DOUBLE CHECK YEAR that has both PREPAY and POD
+        # Calculate remaining prepay
+        df_conpri['PrepayRemaining'] = df_conpri[f'TotalPrepayValue{split}'] - df_conpri[f'CumulativePrepayAmount{split}']
 
-        # Calculate prepay volume and payment
+        # Prepay logic
         df_conpri[prepay_col] = df_conpri.apply(
-            lambda x: x[f'firmERYr{year}'] if (x[f'TotalPrepayValue{split}'] - x[f'CumulativePrepayAmount{split}']) > 0 else 0,
+            lambda x: x[f'firmERYr{year}'] if x['PrepayRemaining'] > 0 else 0,
             axis=1
         )
         df_conpri[pod_vol_col] = df_conpri.apply(
-            lambda x: 0 if (x[f'TotalPrepayValue{split}'] - x[f'CumulativePrepayAmount{split}']) > 0 else x[f'firmERYr{year}'],
+            lambda x: 0 if x['PrepayRemaining'] > 0 else x[f'firmERYr{year}'],
             axis=1
         )
+        df_conpri[prepay_payment_col] = df_conpri[prepay_col] * df_conpri[f'prepayPriceYr{year}']
         df_conpri[pod_payment_col] = df_conpri[pod_vol_col] * df_conpri[f'PODPriceYr{year}']
 
         # Calculate temporary payment
-        df_conpri['TempPayment'] = df_conpri[prepay_col] * df_conpri[f'PODPriceYr{year}']   # TODO: MAYBE WRONG PRICE
+        df_conpri['TempPayment'] = df_conpri[prepay_col] * df_conpri[f'prepayPriceYr{year}']
 
         # Update cumulative prepay amount
         df_conpri[f'CumulativePrepayAmount{split}'] += df_conpri['TempPayment']
 
+        # Handle case where prepay is exhausted
+        df_conpri.loc[df_conpri['PrepayRemaining'] <= 0, pod_payment_col] = (
+            df_conpri['PrepayRemaining'] * -1
+        )
+        df_conpri.loc[df_conpri['PrepayRemaining'] <= 0, pod_vol_col] = (
+            df_conpri[pod_payment_col] / df_conpri[f'PODPriceYr{year}']
+        )
+        df_conpri.loc[df_conpri['PrepayRemaining'] <= 0, prepay_col] = (
+            df_conpri['PrepayRemaining'] / df_conpri[f'prepayPriceYr{year}']
+        )
+        df_conpri.loc[df_conpri['PrepayRemaining'] <= 0, prepay_payment_col] = df_conpri['PrepayRemaining']
+
         # Calculate average cost per tonne
-        df_conpri[avg_cost_col] = df_conpri.apply(          # TODO: MAYBE WRONG
-            lambda x: (x['TempPayment'] + x[pod_payment_col]) / x[f'firmERYr{year}'] if x[f'firmERYr{year}'] > 0 else 0,
+        df_conpri[avg_cost_col] = df_conpri.apply(
+            lambda x: (x[prepay_payment_col] + x[pod_payment_col]) / x[f'firmERYr{year}']
+            if x[f'firmERYr{year}'] > 0 else 0,
             axis=1
         )
-        # Assign prepay payment for the year
-        df_conpri[prepay_payment_col] = df_conpri['TempPayment']
 
     # Drop temporary columns
-    df_conpri.drop(columns=['TempPayment','TotalValueOfContract', f'CumulativePrepayAmount{split}'], inplace=True)
+    df_conpri.drop(columns=['PrepayRemaining', 'TempPayment'], inplace=True)
 
     return df_conpri
