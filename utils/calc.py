@@ -1,4 +1,5 @@
 import numpy_financial as npf
+import pandas as pd
 
 def calc_top_bottom_discount_rate(df_spread, spreadChoice, ovRating, cLength, discCorpContract, is_Top):   
     # Filter df_spread by spreadChoice and ovRating
@@ -69,65 +70,75 @@ def calc_ra_price(discount_rate, techFuncPrice, cLength):
     return round((ratio * techFuncPrice) / 100, 2)
 
 def calculate_prepay_pod_avg_cost(df_conpri, split):
-    df_conpri['TotalValueOfContract'] = sum(
-        df_conpri[f'firmERYr{i}'] * df_conpri[f'PODPriceYr{i}'] for i in range(1, 11)
-    )
-    
-    # Calculate total prepay values for first and second splits
-    df_conpri[f'TotalPrepayValue{split}'] = df_conpri['TotalValueOfContract'] * (df_conpri['firstSplit'] / 100)
-    
-    # Initialize cumulative prepay amount
-    df_conpri[f'CumulativePrepayAmount{split}'] = 0
+    # Initialize all columns for years 1 through 10 with default values
+    for year in range(1, 11):
+        df_conpri[f'PrepayVol{split}Yr{year}'] = 0
+        df_conpri[f'PODVol{split}Yr{year}'] = 0
+        df_conpri[f'PODPayment{split}Yr{year}'] = 0
+        df_conpri[f'AvgCostTon{split}Yr{year}'] = 0
+        df_conpri[f'PrepayPayment{split}Yr{year}'] = 0
 
-    for i in range(10):
-        year = i + 1
-        prepay_col = f'PrepayVol{split}Yr{year}'
-        pod_vol_col = f'PODVol{split}Yr{year}'
-        pod_payment_col = f'PODPayment{split}Yr{year}'
-        avg_cost_col = f'AvgCostTon{split}Yr{year}'
-        prepay_payment_col = f'PrepayPayment{split}Yr{year}'
-
-        # Calculate remaining prepay
-        df_conpri['PrepayRemaining'] = df_conpri[f'TotalPrepayValue{split}'] - df_conpri[f'CumulativePrepayAmount{split}']
-
-        # Prepay logic
-        df_conpri[prepay_col] = df_conpri.apply(
-            lambda x: x[f'firmERYr{year}'] if x['PrepayRemaining'] > 0 else 0,
-            axis=1
+    # Helper function to calculate prepay and POD values for each row
+    def calculate_row(row):
+        total_value_of_contract = sum(
+            row[f'firmERYr{i}'] * row[f'PODPriceYr{i}'] for i in range(1, int(row['cLength']) + 1)
         )
-        df_conpri[pod_vol_col] = df_conpri.apply(
-            lambda x: 0 if x['PrepayRemaining'] > 0 else x[f'firmERYr{year}'],
-            axis=1
-        )
-        df_conpri[prepay_payment_col] = df_conpri[prepay_col] * df_conpri[f'prepayPriceYr{year}']
-        df_conpri[pod_payment_col] = df_conpri[pod_vol_col] * df_conpri[f'PODPriceYr{year}']
+        total_prepay_value = total_value_of_contract * (split / 100)
+        cumulative_prepay_amount = 0
+        row_results = {  # Initialize all columns for this row with default values
+            f'PrepayVol{split}Yr{year}': 0 for year in range(1, 11)
+        }
+        row_results.update({f'PODVol{split}Yr{year}': 0 for year in range(1, 11)})
+        row_results.update({f'PODPayment{split}Yr{year}': 0 for year in range(1, 11)})
+        row_results.update({f'AvgCostTon{split}Yr{year}': 0 for year in range(1, 11)})
+        row_results.update({f'PrepayPayment{split}Yr{year}': 0 for year in range(1, 11)})
 
-        # Calculate temporary payment
-        df_conpri['TempPayment'] = df_conpri[prepay_col] * df_conpri[f'prepayPriceYr{year}']
+        for year in range(1, int(row['cLength']) + 1):
+            prepay_col = f'PrepayVol{split}Yr{year}'
+            pod_vol_col = f'PODVol{split}Yr{year}'
+            pod_payment_col = f'PODPayment{split}Yr{year}'
+            avg_cost_col = f'AvgCostTon{split}Yr{year}'
+            prepay_payment_col = f'PrepayPayment{split}Yr{year}'
 
-        # Update cumulative prepay amount
-        df_conpri[f'CumulativePrepayAmount{split}'] += df_conpri['TempPayment']
+            if total_prepay_value - cumulative_prepay_amount > 0:
+                # Prepay logic
+                prepay_remaining = total_prepay_value - cumulative_prepay_amount
+                row_results[prepay_col] = row[f'firmERYr{year}']
+                row_results[pod_vol_col] = 0
+                row_results[pod_payment_col] = 0
+                temp_payment = row_results[prepay_col] * row[f'prepayPriceYr{year}']
+                row_results[prepay_payment_col] = temp_payment
+                cumulative_prepay_amount += temp_payment
 
-        # Handle case where prepay is exhausted
-        df_conpri.loc[df_conpri['PrepayRemaining'] <= 0, pod_payment_col] = (
-            df_conpri['PrepayRemaining'] * -1
-        )
-        df_conpri.loc[df_conpri['PrepayRemaining'] <= 0, pod_vol_col] = (
-            df_conpri[pod_payment_col] / df_conpri[f'PODPriceYr{year}']
-        )
-        df_conpri.loc[df_conpri['PrepayRemaining'] <= 0, prepay_col] = (
-            df_conpri['PrepayRemaining'] / df_conpri[f'prepayPriceYr{year}']
-        )
-        df_conpri.loc[df_conpri['PrepayRemaining'] <= 0, prepay_payment_col] = df_conpri['PrepayRemaining']
+                if total_prepay_value - cumulative_prepay_amount <= 0:
+                    # Handle case where prepay is exhausted
+                    row_results[pod_payment_col] = (total_prepay_value - cumulative_prepay_amount) * -1
+                    row_results[pod_vol_col] = row_results[pod_payment_col] / row[f'PODPriceYr{year}']
+                    row_results[prepay_col] = prepay_remaining / row[f'prepayPriceYr{year}']
+                    row_results[prepay_payment_col] = prepay_remaining
+                    temp_payment = row_results[prepay_payment_col] + row_results[pod_payment_col]
+                    row_results[avg_cost_col] = (
+                        temp_payment / row[f'firmERYr{year}']
+                        if row[f'firmERYr{year}'] > 0 else 0
+                    )
+            else:
+                # POD logic
+                row_results[prepay_col] = 0
+                row_results[pod_vol_col] = row[f'firmERYr{year}']
+                row_results[pod_payment_col] = row_results[pod_vol_col] * row[f'PODPriceYr{year}']
+                temp_payment = row_results[pod_payment_col]
+                row_results[avg_cost_col] = (
+                    temp_payment / row[f'firmERYr{year}']
+                    if row[f'firmERYr{year}'] > 0 else 0
+                )
 
-        # Calculate average cost per tonne
-        df_conpri[avg_cost_col] = df_conpri.apply(
-            lambda x: (x[prepay_payment_col] + x[pod_payment_col]) / x[f'firmERYr{year}']
-            if x[f'firmERYr{year}'] > 0 else 0,
-            axis=1
-        )
+        return row_results
 
-    # Drop temporary columns
-    df_conpri.drop(columns=['PrepayRemaining', 'TempPayment'], inplace=True)
+    # Apply the helper function row-wise and collect results
+    row_results = df_conpri.apply(calculate_row, axis=1)
+
+    # Combine all row results into the DataFrame
+    for col in row_results.iloc[0].keys():
+        df_conpri[col] = row_results.apply(lambda x: x[col])
 
     return df_conpri
