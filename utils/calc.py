@@ -70,28 +70,24 @@ def calc_ra_price(discount_rate, techFuncPrice, cLength):
     return round((ratio * techFuncPrice) / 100, 2)
 
 def calculate_prepay_pod_avg_cost(df_conpri, split):
-    # Initialize all columns for years 1 through 10 with default values
-    for year in range(1, 11):
-        df_conpri[f'PrepayVol{split}Yr{year}'] = 0
-        df_conpri[f'PODVol{split}Yr{year}'] = 0
-        df_conpri[f'PODPayment{split}Yr{year}'] = 0
-        df_conpri[f'AvgCostTon{split}Yr{year}'] = 0
-        df_conpri[f'PrepayPayment{split}Yr{year}'] = 0
+    # Dictionary to store new columns
+    new_columns = {f'PrepayVol{split}Yr{year}': [] for year in range(1, 11)}
+    new_columns.update({f'PODVol{split}Yr{year}': [] for year in range(1, 11)})
+    new_columns.update({f'PODPayment{split}Yr{year}': [] for year in range(1, 11)})
+    new_columns.update({f'AvgCostTon{split}Yr{year}': [] for year in range(1, 11)})
+    new_columns.update({f'PrepayPayment{split}Yr{year}': [] for year in range(1, 11)})
 
     # Helper function to calculate prepay and POD values for each row
+
+    # DOUBLE CHECK EACH CALCULATION
+
     def calculate_row(row):
         total_value_of_contract = sum(
             row[f'firmERYr{i}'] * row[f'PODPriceYr{i}'] for i in range(1, int(row['cLength']) + 1)
         )
         total_prepay_value = total_value_of_contract * (split / 100)
         cumulative_prepay_amount = 0
-        row_results = {  # Initialize all columns for this row with default values
-            f'PrepayVol{split}Yr{year}': 0 for year in range(1, 11)
-        }
-        row_results.update({f'PODVol{split}Yr{year}': 0 for year in range(1, 11)})
-        row_results.update({f'PODPayment{split}Yr{year}': 0 for year in range(1, 11)})
-        row_results.update({f'AvgCostTon{split}Yr{year}': 0 for year in range(1, 11)})
-        row_results.update({f'PrepayPayment{split}Yr{year}': 0 for year in range(1, 11)})
+        row_results = {key: 0 for key in new_columns.keys()}  # Initialize all columns for this row with default values
 
         for year in range(1, int(row['cLength']) + 1):
             prepay_col = f'PrepayVol{split}Yr{year}'
@@ -137,8 +133,12 @@ def calculate_prepay_pod_avg_cost(df_conpri, split):
     # Apply the helper function row-wise and collect results
     row_results = df_conpri.apply(calculate_row, axis=1)
 
-    # Combine all row results into the DataFrame
-    for col in row_results.iloc[0].keys():
-        df_conpri[col] = row_results.apply(lambda x: x[col])
+    # Combine all row results into the new_columns dictionary
+    for col in new_columns.keys():
+        new_columns[col] = row_results.apply(lambda x: x[col]).tolist()
+
+    # Add all new columns to the DataFrame at once
+    new_columns_df = pd.DataFrame(new_columns, index=df_conpri.index)
+    df_conpri = pd.concat([df_conpri, new_columns_df], axis=1)
 
     return df_conpri
