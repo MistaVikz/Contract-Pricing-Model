@@ -127,7 +127,7 @@ def calculate_prepay_pod_avg_cost(df_conpri, split):
 
         return row_results
 
-    # Apply the helper function row-wise and collect results
+    # Calculate all rows
     row_results = df_conpri.apply(calculate_row, axis=1)
 
     # Combine all row results into the new_columns dictionary
@@ -140,8 +140,7 @@ def calculate_prepay_pod_avg_cost(df_conpri, split):
 
     return df_conpri
 
-def calc_cash_flow(rofrToBuyer, year, cLength, podPrice, podPayment, salesPrice, firmEr, fee, prePayAndOption):
-    
+def calc_cash_flow(rofrToBuyer, year, cLength, podPrice, podPayment, salesPrice, firmEr, fee, prePayAndOption = None):
     if(year > cLength):
         return None
     elif(year == cLength):
@@ -149,12 +148,10 @@ def calc_cash_flow(rofrToBuyer, year, cLength, podPrice, podPayment, salesPrice,
         rofrSales = rofrToBuyer * salesPrice
         revenue = round((firmEr * salesPrice) + rofrSales, 2)
         cost = round(podPayment + rofrCost + fee, 2)
-        return (cost * -1) + revenue
     elif(year < 4):
         revenue = round(firmEr * salesPrice, 2)
         cost = round(prePayAndOption + podPayment + fee, 2)
-        return (cost * -1) + revenue
     else:
         revenue = round(firmEr * salesPrice, 2)
         cost = round(podPayment + fee, 2)
-        return (cost * -1) + revenue
+    return (cost * -1) + revenue

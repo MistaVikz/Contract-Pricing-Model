@@ -29,16 +29,20 @@ def main():
     df_conpri = calculate_prepay_pod_avg_cost(df_conpri, FIRST_SPLIT)
     df_conpri = calculate_prepay_pod_avg_cost(df_conpri, SECOND_SPLIT)
 
-    # Calculate Option Years
+    # Calculate Cash Flow during Option Years
     for i in range(1, 5):
         df_conpri[f'CashFlow{FIRST_SPLIT}Yr{i}'] = df_conpri.apply(lambda x: calc_cash_flow(x[f'ROFRtoBuyerYr{i}'], i, x['cLength'], x[f'PODPriceYr{i}'], x[f'PODPayment{FIRST_SPLIT}Yr{i}'], x[f'SalesPriceYr{i}'], x[f'firmERYr{i}'], x[f'feeYr{i}'], x[f'prepayAndOptionYr{1}'], ), axis=1)
         df_conpri[f'CashFlow{SECOND_SPLIT}Yr{i}'] = df_conpri.apply(lambda x: calc_cash_flow(x[f'ROFRtoBuyerYr{i}'], i, x['cLength'], x[f'PODPriceYr{i}'], x[f'PODPayment{SECOND_SPLIT}Yr{i}'], x[f'SalesPriceYr{i}'], x[f'firmERYr{i}'], x[f'feeYr{i}'], x[f'prepayAndOptionYr{1}'], ), axis=1)
+    # Calculate remaining Cash Flow
+    for i in range(5,11):
+        df_conpri[f'CashFlow{FIRST_SPLIT}Yr{i}'] = df_conpri.apply(lambda x: calc_cash_flow(x[f'ROFRtoBuyerYr{i}'], i, x['cLength'], x[f'PODPriceYr{i}'], x[f'PODPayment{FIRST_SPLIT}Yr{i}'], x[f'SalesPriceYr{i}'], x[f'firmERYr{i}'], x[f'feeYr{i}']), axis=1)
+        df_conpri[f'CashFlow{SECOND_SPLIT}Yr{i}'] = df_conpri.apply(lambda x: calc_cash_flow(x[f'ROFRtoBuyerYr{i}'], i, x['cLength'], x[f'PODPriceYr{i}'], x[f'PODPayment{SECOND_SPLIT}Yr{i}'], x[f'SalesPriceYr{i}'], x[f'firmERYr{i}'], x[f'feeYr{i}']), axis=1)
+
+    # Clean up unnecessary columns, Format and save the DataFrame
+    df_conpri.to_excel("contract_pricing_test.xlsx", engine ="openpyxl", index = False)
 
     print(df_conpri)
     print(df_conpri.columns)    
-
-    # Remember to FIX warnings with lambda functions and DOUBLE CHECK prepar/pod/avg costs function
-    # Remember to DROP Unnecessary Columns and SPLIT Columns (They are now hardcoded)
     
 if __name__ == "__main__":
     main()
