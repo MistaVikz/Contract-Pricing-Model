@@ -78,9 +78,6 @@ def calculate_prepay_pod_avg_cost(df_conpri, split):
     new_columns.update({f'PrepayPayment{split}Yr{year}': [] for year in range(1, 11)})
 
     # Helper function to calculate prepay and POD values for each row
-
-    # DOUBLE CHECK EACH CALCULATION
-
     def calculate_row(row):
         total_value_of_contract = sum(
             row[f'firmERYr{i}'] * row[f'PODPriceYr{i}'] for i in range(1, int(row['cLength']) + 1)
@@ -142,3 +139,22 @@ def calculate_prepay_pod_avg_cost(df_conpri, split):
     df_conpri = pd.concat([df_conpri, new_columns_df], axis=1)
 
     return df_conpri
+
+def calc_cash_flow(rofrToBuyer, year, cLength, podPrice, podPayment, salesPrice, firmEr, fee, prePayAndOption):
+    
+    if(year > cLength):
+        return None
+    elif(year == cLength):
+        rofrCost = rofrToBuyer * podPrice
+        rofrSales = rofrToBuyer * salesPrice
+        revenue = round((firmEr * salesPrice) + rofrSales, 2)
+        cost = round(podPayment + rofrCost + fee, 2)
+        return (cost * -1) + revenue
+    elif(year < 4):
+        revenue = round(firmEr * salesPrice, 2)
+        cost = round(prePayAndOption + podPayment + fee, 2)
+        return (cost * -1) + revenue
+    else:
+        revenue = round(firmEr * salesPrice, 2)
+        cost = round(podPayment + fee, 2)
+        return (cost * -1) + revenue
