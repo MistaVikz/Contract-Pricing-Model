@@ -155,3 +155,15 @@ def calc_cash_flow(rofrToBuyer, year, cLength, podPrice, podPayment, salesPrice,
         revenue = round(firmEr * salesPrice, 2)
         cost = round(podPayment + fee, 2)
     return (cost * -1) + revenue
+
+def calc_irr(cashYr1, cashYr2, cashYr3, cashYr4, cashYr5, cashYr6, cashYr7, cashYr8, cashYr9, cashYr10):
+    cashFlows = [cashYr1, cashYr2, cashYr3, cashYr4, cashYr5, cashYr6, cashYr7, cashYr8, cashYr9, cashYr10]
+    cashFlowsNotNull = [x for x in cashFlows if not pd.isnull(x)]
+        
+    if len(cashFlowsNotNull) == 0:
+        return None
+    elif len(cashFlowsNotNull) == 1:
+        return cashFlowsNotNull[0] * 100
+    else:
+        return npf.irr(cashFlowsNotNull) * 100
+
