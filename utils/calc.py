@@ -156,7 +156,7 @@ def calc_cash_flow(rofrToBuyer, year, cLength, podPrice, podPayment, salesPrice,
         cost = round(podPayment + fee, 2)
     return (cost * -1) + revenue
 
-def calc_irr(cashYr1, cashYr2, cashYr3, cashYr4, cashYr5, cashYr6, cashYr7, cashYr8, cashYr9, cashYr10):
+def calc_irr(cashYr1, cashYr2, cashYr3, cashYr4, cashYr5, cashYr6, cashYr7, cashYr8, cashYr9, cashYr10, simulationName, split):
     cashFlows = [cashYr1, cashYr2, cashYr3, cashYr4, cashYr5, cashYr6, cashYr7, cashYr8, cashYr9, cashYr10]
     cashFlowsNotNull = [x for x in cashFlows if not pd.isnull(x)]
         
@@ -164,6 +164,10 @@ def calc_irr(cashYr1, cashYr2, cashYr3, cashYr4, cashYr5, cashYr6, cashYr7, cash
         return None
     elif len(cashFlowsNotNull) == 1:
         return cashFlowsNotNull[0] * 100
-    else:
-        return npf.irr(cashFlowsNotNull) * 100
+    irr = round(npf.irr(cashFlowsNotNull) * 100, 2)
+    
+    if pd.isnull(irr):
+        print(f'IRR {split} could not be calculated for {simulationName}. Check cash flows.')
+    return irr
+
 

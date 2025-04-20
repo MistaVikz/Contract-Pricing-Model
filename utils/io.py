@@ -12,13 +12,18 @@ q_load_spread = '''SELECT * FROM ConPriSpread;'''
 def load_data(db_path: str) -> pd.DataFrame:
     conn = sqlite3.connect(db_path)
     
-    # Load and clean required Contract Pricing data
+    # Load Contract Pricing data
     df_conpri = pd.read_sql_query(q_load_data, conn)
-    df_conpri = df_conpri.drop(columns=['OvRating','prunID','aChoice','aID', 'ovSPRating', 'dateEntered', 'isCurrent'], axis=1, errors='ignore')
-
-    # Load and clean required Contract Pricing Spread data
+    df_conpri = df_conpri.drop(columns=['OvRating','prunID','aChoice','aID', 'ovSPRating', 'dateEntered', 'isCurrent',
+                                         'estIRR30Percent', 'estIRR50Percent', 'firstSplit', 'secondSplit'], axis=1, errors='ignore')
+    # Load Contract Pricing Spread data
     df_spread = pd.read_sql_query(q_load_spread, conn)
     
     conn.close()
 
     return df_conpri, df_spread
+
+def print_results(df: pd.DataFrame) -> None:
+    df = df.drop(columns=['ovSPRating', 'ovRating', 'dateScreen', 'totalShortfall', 'DiscCorpContract', 'TopDiscRate', 
+                          'BottomDiscRate'], axis=1, errors='ignore')
+    print(df.head())
