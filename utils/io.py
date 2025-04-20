@@ -1,5 +1,6 @@
 import sqlite3
 import pandas as pd
+from datetime import datetime
 
 q_load_data = '''SELECT ConPri.*, ConPriAssumptions.*, Project.pID AS simulationName, Project.offYr1, Project.offYr2, Project.offYr3,
     Project.offYr4, Project.offYr5, Project.offYr6, Project.offYr7, Project.offYr8, Project.offYr9, ProjectDescription.cLength, 
@@ -9,7 +10,7 @@ q_load_data = '''SELECT ConPri.*, ConPriAssumptions.*, Project.pID AS simulation
     LEFT JOIN ProjectDescription ON Project.pID = ProjectDescription.pID;'''
 q_load_spread = '''SELECT * FROM ConPriSpread;'''
 
-def load_data(db_path: str) -> pd.DataFrame:
+def load_data(db_path):
     conn = sqlite3.connect(db_path)
     
     # Load Contract Pricing data
@@ -23,7 +24,11 @@ def load_data(db_path: str) -> pd.DataFrame:
 
     return df_conpri, df_spread
 
-def print_results(df: pd.DataFrame) -> None:
+def print_results(df):
     df = df.drop(columns=['ovSPRating', 'ovRating', 'dateScreen', 'totalShortfall', 'DiscCorpContract', 'TopDiscRate', 
-                          'BottomDiscRate'], axis=1, errors='ignore')
-    print(df.head())
+                          'BottomDiscRate', 'description', 'techFundPrice' ,'risklessRate' , 'spreadAAA', 'adjFactor'], axis=1, errors='ignore')
+    current_datetime = datetime.now().strftime("%Y%m%d-%H%M%S")
+
+    print('\n')
+    print(df)
+    df.to_excel(f'output/contract_pricing_results_{current_datetime}.xlsx', index=False, engine='openpyxl')
