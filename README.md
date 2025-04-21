@@ -19,3 +19,8 @@ This project implements a contract pricing model to calculate various financial 
 ## Usage
 Execute the contract_pricing.py script to calculate financial metrics:
 `python contract_pricing.py`
+
+## Output
+
+- Results are printed to the console.
+- Results are saved as an Excel file in the output directory with a timestamped filename.
