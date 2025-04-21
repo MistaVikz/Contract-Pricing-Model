@@ -31,4 +31,4 @@ def print_results(df):
 
     print('\n')
     print(df)
-    df.to_excel(f'output/contract_pricing_results_{current_datetime}.xlsx', index=False, engine='openpyxl')
+    df.to_csv(f'output/contract_pricing_results_{current_datetime}.csv', index=False)
