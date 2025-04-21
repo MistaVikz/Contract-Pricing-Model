@@ -2,6 +2,20 @@ import numpy_financial as npf
 import pandas as pd
 
 def calc_top_bottom_discount_rate(df_spread, spreadChoice, ovRating, cLength, discCorpContract, is_Top):   
+    """
+    Calculate the top or bottom discount rate for a corporate contract.
+
+    Args:
+        df_spread (pd.DataFrame): DataFrame containing spread data.
+        spreadChoice (str): The spread type (e.g., 'AAA', 'BBB').
+        ovRating (str): The overall rating of the contract (e.g., 'A', 'B', 'C').
+        cLength (int): The contract length in years.
+        discCorpContract (float): The discount on the corporate contract.
+        is_Top (bool): Whether to calculate the top discount rate (True) or bottom discount rate (False).
+
+    Returns:
+        float: The calculated discount rate.
+    """
     # Filter df_spread by spreadChoice and ovRating
     df_spread_filtered = df_spread[(df_spread['sType'] == spreadChoice) & (df_spread['rating'] == ovRating)]
     
@@ -66,10 +80,31 @@ def calc_top_bottom_discount_rate(df_spread, spreadChoice, ovRating, cLength, di
             return discCorpContract + (spread / 100)            
 
 def calc_ra_price(discount_rate, techFuncPrice, cLength):
+    """
+    Calculate the RA (Risk Adjustment) price for a contract.
+
+    Args:
+        discount_rate (float): The discount rate for the contract.
+        techFuncPrice (float): The technical function price.
+        cLength (int): The contract length in years.
+
+    Returns:
+        float: The calculated RA price.
+    """
     ratio = npf.pv(discount_rate / 100, cLength, 0 , 100) * -1
     return round((ratio * techFuncPrice) / 100, 2)
 
 def calculate_prepay_pod_avg_cost(df_conpri, split):
+    """
+    Calculate prepay, POD (Point of Delivery), and average cost per ton for a contract.
+
+    Args:
+        df_conpri (pd.DataFrame): DataFrame containing contract pricing data.
+        split (int): The percentage split for prepay (e.g., 30 or 50).
+
+    Returns:
+        pd.DataFrame: The updated DataFrame with calculated columns for prepay, POD, and average cost.
+    """
     # Dictionary to store new columns
     new_columns = {f'PrepayVol{split}Yr{year}': [] for year in range(1, 11)}
     new_columns.update({f'PODVol{split}Yr{year}': [] for year in range(1, 11)})
@@ -141,6 +176,23 @@ def calculate_prepay_pod_avg_cost(df_conpri, split):
     return df_conpri
 
 def calc_cash_flow(rofrToBuyer, year, cLength, podPrice, podPayment, salesPrice, firmEr, fee, prePayAndOption = None):
+    """
+    Calculate the cash flow for a specific year of a contract.
+
+    Args:
+        rofrToBuyer (float): The ROFR (Right of First Refusal) volume to the buyer.
+        year (int): The year for which to calculate cash flow.
+        cLength (int): The contract length in years.
+        podPrice (float): The POD (Point of Delivery) price.
+        podPayment (float): The POD payment.
+        salesPrice (float): The sales price.
+        firmEr (float): The firm energy requirement.
+        fee (float): The fee for the year.
+        prePayAndOption (float, optional): The prepay and option cost (if applicable).
+
+    Returns:
+        float: The calculated cash flow for the year.
+    """
     if(year > cLength):
         return None
     elif(year == cLength):
@@ -157,6 +209,17 @@ def calc_cash_flow(rofrToBuyer, year, cLength, podPrice, podPayment, salesPrice,
     return (cost * -1) + revenue
 
 def calc_irr(cashYr1, cashYr2, cashYr3, cashYr4, cashYr5, cashYr6, cashYr7, cashYr8, cashYr9, cashYr10, simulationName, split):
+    """
+    Calculate the IRR (Internal Rate of Return) for a contract.
+
+    Args:
+        cashYr1, ..., cashYr10 (float): Cash flows for years 1 through 10.
+        simulationName (str): The name of the simulation.
+        split (int): The percentage split for prepay (e.g., 30 or 50).
+
+    Returns:
+        float: The calculated IRR, or None if it cannot be calculated.
+    """
     cashFlows = [cashYr1, cashYr2, cashYr3, cashYr4, cashYr5, cashYr6, cashYr7, cashYr8, cashYr9, cashYr10]
     cashFlowsNotNull = [x for x in cashFlows if not pd.isnull(x)]
         
