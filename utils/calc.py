@@ -220,14 +220,14 @@ def calc_irr(cashYr1, cashYr2, cashYr3, cashYr4, cashYr5, cashYr6, cashYr7, cash
     Returns:
         float: The calculated IRR, or None if it cannot be calculated.
     """
-    cashFlows = [cashYr1, cashYr2, cashYr3, cashYr4, cashYr5, cashYr6, cashYr7, cashYr8, cashYr9, cashYr10]
+    cashFlows = [-cashYr1, cashYr2, cashYr3, cashYr4, cashYr5, cashYr6, cashYr7, cashYr8, cashYr9, cashYr10]
     cashFlowsNotNull = [x for x in cashFlows if not pd.isnull(x)]
         
     if len(cashFlowsNotNull) == 0:
         return None
     elif len(cashFlowsNotNull) == 1:
-        return cashFlowsNotNull[0] * 100
-    irr = round(npf.irr(cashFlowsNotNull) * 100, 2)
+        return cashFlowsNotNull[0]
+    irr = round(npf.irr(cashFlowsNotNull), 2)
     
     if pd.isnull(irr):
         print(f'IRR {split} could not be calculated for {simulationName}. Check cash flows.')
