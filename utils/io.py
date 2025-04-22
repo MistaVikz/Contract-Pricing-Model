@@ -26,8 +26,7 @@ def load_data(db_path):
     
     # Load Contract Pricing data
     df_conpri = pd.read_sql_query(q_load_data, conn)
-    df_conpri = df_conpri.drop(columns=['OvRating','prunID','aChoice','aID', 'ovSPRating', 'dateEntered', 'isCurrent',
-                                         'estIRR30Percent', 'estIRR50Percent', 'firstSplit', 'secondSplit'], axis=1, errors='ignore')
+    df_conpri = df_conpri.drop(columns=['OvRating','prunID','aChoice','aID', 'ovSPRating', 'dateEntered', 'isCurrent'], axis=1, errors='ignore')
     # Load Contract Pricing Spread data
     df_spread = pd.read_sql_query(q_load_spread, conn)
     
