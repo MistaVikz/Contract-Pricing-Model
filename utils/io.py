@@ -44,8 +44,6 @@ def print_results(df):
     Returns:
         None
     """
-    df = df.drop(columns=['ovSPRating', 'ovRating', 'dateScreen', 'totalShortfall', 'DiscCorpContract', 'TopDiscRate', 
-                          'BottomDiscRate', 'description', 'techFundPrice' ,'risklessRate' , 'spreadAAA', 'adjFactor'], axis=1, errors='ignore')
     current_datetime = datetime.now().strftime("%Y%m%d-%H%M%S")
 
     print('\n')
