@@ -23,4 +23,4 @@ Execute the contract_pricing.py script to calculate financial metrics:
 ## Output
 
 - Results are printed to the console.
-- Results are saved as an Excel file in the output directory with a timestamped filename.
+- Results are saved as an CSV file in the output directory.

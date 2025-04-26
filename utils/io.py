@@ -33,19 +33,3 @@ def load_data(db_path):
     conn.close()
 
     return df_conpri, df_spread
-
-def print_results(df):
-    """
-    Print the results DataFrame and save it to a CSV file.
-
-    Args:
-        df (pandas.DataFrame): The DataFrame containing the results to be printed and saved.
-
-    Returns:
-        None
-    """
-    current_datetime = datetime.now().strftime("%Y%m%d-%H%M%S")
-
-    print('\n')
-    print(df)
-    df.to_csv(f'output/contract_pricing_results_{current_datetime}.csv', index=False)

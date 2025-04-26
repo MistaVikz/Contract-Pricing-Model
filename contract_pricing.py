@@ -43,7 +43,8 @@ def main():
     df_conpri[f'IRR{SECOND_SPLIT}'] = df_conpri.apply(lambda x: calc_irr(x[f'CashFlow{SECOND_SPLIT}Yr1'], x[f'CashFlow{SECOND_SPLIT}Yr2'], x[f'CashFlow{SECOND_SPLIT}Yr3'], x[f'CashFlow{SECOND_SPLIT}Yr4'], x[f'CashFlow{SECOND_SPLIT}Yr5'], x[f'CashFlow{SECOND_SPLIT}Yr6'], x[f'CashFlow{SECOND_SPLIT}Yr7'], x[f'CashFlow{SECOND_SPLIT}Yr8'], x[f'CashFlow{SECOND_SPLIT}Yr9'], x[f'CashFlow{SECOND_SPLIT}Yr10'], x['simulationName'], SECOND_SPLIT), axis=1)
 
     # Save Results
-    print_results(df_conpri)
+    print(df_conpri)
+    df_conpri.to_csv('output/contract_pricing_results.csv', index=False)
 
 if __name__ == "__main__":
     main()
